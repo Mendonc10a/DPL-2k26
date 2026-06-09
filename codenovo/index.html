@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOGO DE EQUILIBRO</title>
+    <style>
+        body {
+            margin: 0;
+            background: #121212;
+            color: #eee;
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .info { text-align: center; margin-bottom: 20px; }
+        h1 { font-weight: 300; letter-spacing: 1px; margin: 0; }
+        p { color: #888; font-size: 0.9rem; }
+        canvas {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>JOGO DE EQUILIBRO</h1>
+        <p>Use as setas ou A/D para mover</p>
+    </div>
+    <canvas id="jogoCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("jogoCanvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = 800;
+        canvas.height = 500;
+
+        // Configurações do Jogo
+        let gravidade = 0.25;
+        let tempoInicio = Date.now();
+        let tempoFinal = 0;
+        let jogoAtivo = true;
+
+        // Elementos do Jogo
+        const barra = { x: 345, y: 450, largura: 110, altura: 12, cor: "#eee" };
+        const bola = { x: 400, y: 50, raio: 10, velX: 4, velY: 0, cor: "#3498db" };
+        const teclasPressionadas = {};
+
+        // Controles do Teclado
+        window.onkeydown = evento => teclasPressionadas[evento.key] = true;
+        window.onkeyup = evento => teclasPressionadas[evento.key] = false;
+
+        function atualizarJogo() {
+            if (!jogoAtivo) return;
+
+            // Movimentação da Barra
+            if (teclasPressionadas["a"] || teclasPressionadas["A"] || teclasPressionadas["ArrowLeft"]) barra.x -= 10;
+            if (teclasPressionadas["d"] || teclasPressionadas["D"] || teclasPressionadas["ArrowRight"]) barra.x += 10;
+            
+            // Garante que a barra não saia da tela
+            barra.x = Math.max(0, Math.min(canvas.width - barra.largura, barra.x));
+
+            // Física da Bola
+            bola.velY += gravidade;
+            bola.x += bola.velX;
+            bola.y += bola.velY;
+
+            // Colisão com as Paredes Laterais
+            if (bola.x - bola.raio < 0 || bola.x + bola.raio > canvas.width) {
+                bola.velX *= -1;
+            }
+            // Colisão com o Teto
+            if (bola.y - bola.raio < 0) {
+                bola.velY *= -1;
+            }
+
+            // Colisão da Bola com a Barra
+            if (bola.y + bola.raio >= barra.y && 
+                bola.x >= barra.x && 
+                bola.x <= barra.x + barra.largura && 
+                bola.velY > 0) {
+                
+                bola.velY = -9; // Impulsiona a bola para cima
+                bola.velX += (bola.x - (barra.x + barra.largura / 2)) * 0.15; // Efeito de direção baseado onde bateu na barra
+            }
+
+            // Game Over (Bola caiu)
+            if (bola.y > canvas.height) {
+                jogoAtivo = false;
+                tempoFinal = ((Date.now() - tempoInicio) / 1000).toFixed(1);
+            }
+        }
+
+        function desenharJogo() {
+            // Limpa a tela inteira
+            ctx.fillStyle = "#1e1e1e";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Desenha a Barra
+            ctx.fillStyle = barra.cor;
+            ctx.fillRect(barra.x, barra.y, barra.largura, barra.altura);
+
+            // Desenha a Bola
+            ctx.fillStyle = bola.cor;
+            ctx.beginPath();
+            ctx.arc(bola.x, bola.y, bola.raio, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Calcula e Desenha o Tempo
+            let tempoAtual = jogoAtivo ? ((Date.now() - tempoInicio) / 1000).toFixed(1) : tempoFinal;
+            ctx.fillStyle = "#888";
+            ctx.font = "16px sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillText(`${tempoAtual}s`, 20, 30);
+
+            // Desenha a Tela de Fim de Jogo
+            if (!jogoAtivo) {
+                ctx.fillStyle = "rgba(0,0,0,0.85)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = "#fff";
+                ctx.textAlign = "center";
+                ctx.font = "30px sans-serif";
+                ctx.fillText("FIM DE JOGO", canvas.width / 2, canvas.height / 2);
+                
+                ctx.font = "16px sans-serif";
+                ctx.fillText(`Você durou ${tempoFinal} segundos. F5 para reiniciar.`, canvas.width / 2, canvas.height / 2 + 40);
+            }
+        }
+
+        // Função de Loop unificada
+        function loopJogo() {
+            atualizarJogo();
+            desenharJogo();
+            requestAnimationFrame(loopJogo); // Chama o próximo quadro corretamente
+        }
+
+        // Inicia o jogo
+        loopJogo();
+    </script>
+</body>
+</html>

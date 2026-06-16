@@ -1,0 +1,5 @@
+200 OK: Sucesso total; o servidor encontrou e entregou o arquivo solicitado (como o HTML do site).
+
+304 Not Modified: O arquivo não mudou desde seu último acesso e o navegador o carregou direto do cache do seu PC.
+
+204 No Content: A requisição deu certo, mas o servidor não precisa enviar nenhuma resposta visual (comum em scripts de análise).

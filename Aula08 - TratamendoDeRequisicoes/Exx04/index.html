@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Exercício 4 - Cor de Fundo</title>
+</head>
+<body>
+    <h1 id="mensagem">Cor de fundo atual</h1>
+    <p>Use os parâmetros na URL: <code>?bg=red</code>, <code>?bg=green</code> ou <code>?bg=blue</code></p>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const cor = urlParams.get('bg') || 'white';
+        document.body.style.backgroundColor = cor;
+        document.getElementById('mensagem').innerText = `A cor de fundo atual é: ${cor}`;
+    </script>
+</body>
+</html>
